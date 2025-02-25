@@ -8,6 +8,7 @@ import { connectMongoDB } from "./config/mongoDB.config.js";
 import session from "express-session";
 import { initializePassport } from "./config/passport.config.js";
 import cookieParser from "cookie-parser";
+import envsConfig from "./config/envs.config.js";
 
 const app = express();
 
@@ -15,33 +16,33 @@ connectMongoDB();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.engine("handlebars", handlebars.engine()); // Inicia el motor del la plantilla
-app.set("views", __dirname + "/views"); // Indicamos que ruta se encuentras las vistas
-app.set("view engine", "handlebars"); // Indicamos con que motor vamos a utilizar las vistas
+app.engine("handlebars", handlebars.engine()); 
+app.set("views", __dirname + "/views"); 
+app.set("view engine", "handlebars"); 
 app.use(express.static("public"));
 
 app.use(
   session({
-    secret: "clavesecreta", //palabra secreta
-    resave: true, //mantiene la sesion activa, si esta en false la sesion se cierra
-    saveUninitialized:true //guarda la sesion
+    secret: envsConfig.SECRET_KEY, 
+    resave: true, 
+    saveUninitialized:true
   })
 );
 
 initializePassport();
 app.use(cookieParser());
 
-// Rutas de la api
+//! Rutas de la api
 app.use("/api", routes);
 
-// Ruta de las vistas
+//! Ruta de las vistas
 app.use("/", viewsRoutes)
 
-const httpServer = app.listen(8080, () => {
-  console.log("Servidor escuchando en el puerto 8080");
+const httpServer = app.listen(envsConfig.PORT, () => {
+  console.log(`Servidor escuchando en el puerto ${envsConfig.PORT}`);
 });
 
-// Configuramos socket
+//! Configuramos socket
 export const io = new Server(httpServer);
 
 io.on("connection", (socket) => {
